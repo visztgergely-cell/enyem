@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBLOCK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: #0f0f0f;
+      --surface-2: #161616;
+      --border: #1e1e1e;
+      --border-2: #2a2a2a;
+      --accent: #d4ff00;
+      --accent-dim: rgba(212,255,0,0.12);
+      --accent-glow: rgba(212,255,0,0.06);
+      --text: #f0f0f0;
+      --text-2: #6a6a6a;
+      --text-3: #2e2e2e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9000;
+      opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--text-3); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ─── HEADER ─── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      height: 72px;
+      padding: 0 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8,8,8,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 26px;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .logo-dot { color: var(--accent); font-size: 32px; line-height: 1; margin-bottom: 2px; }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 44px;
+    }
+    nav a {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      text-decoration: none;
+      transition: color 0.2s;
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.25s ease;
+    }
+    nav a:hover { color: var(--text); }
+    nav a:hover::after { width: 100%; }
+
+    .header-cart {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      padding: 9px 22px;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .header-cart:hover { border-color: var(--accent); color: var(--accent); }
+    .header-cart:active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .header-cart svg { transition: transform 0.2s; }
+    .header-cart:hover svg { transform: translateY(-1px); }
+
+    .cart-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      border-radius: 2px;
+      padding: 0 3px;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .cart-badge.pop { transform: scale(1.5); }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      padding-top: 72px;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 70%;
+      height: 80%;
+      background:
+        radial-gradient(ellipse 50% 60% at 70% 30%, rgba(212,255,0,0.07) 0%, transparent 65%),
+        radial-gradient(ellipse 30% 40% at 20% 70%, rgba(212,255,0,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.3;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 56px 72px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: rise 0.7s ease 0.15s forwards;
+    }
+
+    .hero-heading {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(96px, 16vw, 220px);
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: rise 0.7s ease 0.3s forwards;
+    }
+    .hero-heading .block-accent {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--accent);
+    }
+
+    .hero-bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      opacity: 0;
+      animation: rise 0.7s ease 0.5s forwards;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text-2);
+      max-width: 380px;
+      font-weight: 300;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .btn-cta {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 16px 44px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-cta:hover { background: #c0eb00; transform: translateY(-2px); }
+    .btn-cta:active { transform: translateY(0); }
+
+    .btn-outline {
+      background: none;
+      border: 1px solid var(--border-2);
+      color: var(--text-2);
+      padding: 16px 32px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--border-2); color: var(--text); }
+    .btn-outline .arrow { transition: transform 0.2s; }
+    .btn-outline:hover .arrow { transform: translateX(4px); }
+
+    .hero-ticker {
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .hero-ticker-inner {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      animation: ticker 28s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .ticker-item .dot {
+      width: 4px; height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── PRODUCTS ─── */
+    .products-section {
+      padding: 120px 56px;
+      position: relative;
+    }
+
+    .section-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 60px;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-heading {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(44px, 6vw, 76px);
+      letter-spacing: 0.03em;
+      line-height: 1;
+    }
+
+    .section-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+      padding-bottom: 6px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.3s;
+      opacity: 0;
+      animation: rise 0.55s ease both;
+    }
+    .product-card:hover { border-color: var(--accent); }
+
+    .product-card:nth-child(1) { animation-delay: 0.05s; }
+    .product-card:nth-child(2) { animation-delay: 0.12s; }
+    .product-card:nth-child(3) { animation-delay: 0.19s; }
+    .product-card:nth-child(4) { animation-delay: 0.26s; }
+    .product-card:nth-child(5) { animation-delay: 0.33s; }
+    .product-card:nth-child(6) { animation-delay: 0.40s; }
+
+    .product-thumb {
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface-2);
+    }
+
+    .product-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      filter: grayscale(15%) contrast(1.04);
+    }
+    .product-card:hover .product-thumb img { transform: scale(1.06); }
+
+    .product-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(8,8,8,0.55) 100%);
+      transition: opacity 0.3s;
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 16px; left: 16px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      font-weight: 500;
+    }
+
+    .product-num {
+      position: absolute;
+      bottom: 14px; right: 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(240,240,240,0.3);
+      letter-spacing: 0.08em;
+    }
+
+    .product-body {
+      padding: 24px 26px 26px;
+    }
+
+    .product-name {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .product-card:hover .product-name { color: var(--accent); }
+
+    .product-desc {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-2);
+      font-weight: 300;
+      margin-bottom: 22px;
+    }
+
+    .product-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .product-price {
+      font-family: 'DM Mono', monospace;
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .add-btn {
+      background: none;
+      border: 1px solid var(--border-2);
+      color: var(--text-2);
+      padding: 9px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .add-btn:active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .add-btn .plus { font-size: 16px; line-height: 1; transition: transform 0.2s; }
+    .add-btn:hover .plus { transform: rotate(90deg); }
+
+    /* ─── STRIPE / CTA BAND ─── */
+    .cta-band {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      background:
+        radial-gradient(ellipse 50% 100% at 50% 50%, rgba(212,255,0,0.04) 0%, transparent 70%);
+    }
+
+    .cta-band-text {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(36px, 5vw, 60px);
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+    }
+    .cta-band-text span { color: var(--accent); }
+
+    .cta-band-sub {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-top: 12px;
+      font-weight: 300;
+      line-height: 1.6;
+      max-width: 300px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 48px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── CART OVERLAY + DRAWER ─── */
+    .cart-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .cart-overlay.open { opacity: 1; pointer-events: all; }
+
+    .cart-drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 430px;
+      max-width: 100vw;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 801;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .cart-drawer.open { transform: translateX(0); }
+
+    .cart-head {
+      padding: 22px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cart-head-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .cart-head-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px;
+      letter-spacing: 0.08em;
+    }
+    .cart-head-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .cart-x {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      width: 34px; height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .cart-x:hover { border-color: var(--accent); color: var(--accent); }
+
+    .cart-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 32px;
+    }
+    .cart-body::-webkit-scrollbar { width: 2px; }
+    .cart-body::-webkit-scrollbar-track { background: transparent; }
+    .cart-body::-webkit-scrollbar-thumb { background: var(--border-2); }
+
+    .cart-empty-state {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .empty-glyph {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 72px;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+    }
+    .empty-msg {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .cart-line {
+      display: flex;
+      gap: 16px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+      animation: rise 0.3s ease both;
+    }
+
+    .cart-line-img {
+      width: 68px; height: 68px;
+      object-fit: cover;
+      filter: grayscale(20%);
+      flex-shrink: 0;
+    }
+
+    .cart-line-info { flex: 1; min-width: 0; }
+
+    .cart-line-name {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 17px;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cart-line-price {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .qty-row {
+      display: flex;
+      align-items: center;
+    }
+    .qty-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 28px; height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .qty-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      width: 36px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cart-line-del {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 18px;
+      align-self: center;
+      transition: color 0.2s;
+      flex-shrink: 0;
+    }
+    .cart-line-del:hover { color: #ff4040; }
+
+    .cart-foot {
+      padding: 24px 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .cart-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .cart-total-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .cart-total-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .cart-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      margin-bottom: 22px;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 17px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .checkout-btn:hover { background: #c0eb00; transform: translateY(-1px); }
+    .checkout-btn:active { transform: translateY(0); }
+    .checkout-btn:disabled {
+      background: var(--text-3);
+      cursor: not-allowed;
+      transform: none;
+      color: var(--text-2);
+    }
+
+    /* ─── KEYFRAMES ─── */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      header { padding: 0 24px; }
+      nav { display: none; }
+      .hero-content { padding: 0 24px 56px; }
+      .hero-bottom { flex-direction: column; align-items: flex-start; }
+      .products-section { padding: 80px 24px; }
+      .cta-band { padding: 60px 24px; flex-direction: column; align-items: flex-start; }
+      footer { padding: 40px 24px; flex-direction: column; gap: 16px; }
+    }
+    @media (max-width: 540px) {
+      .products-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <a href="#" class="logo">PBLOCK<span class="logo-dot">.</span></a>
+  <nav>
+    <a href="#products">Termékek</a>
+    <a href="#about">Rólunk</a>
+  </nav>
+  <button class="header-cart" id="cartOpen">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
+    </svg>
+    Kosár
+    <span class="cart-badge" id="cartBadge">0</span>
+  </button>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid-lines"></div>
+
+  <div class="hero-content">
+    <p class="hero-tag">// Kínálat 2026</p>
+    <h1 class="hero-heading">
+      P
+      <span class="block-accent">BLOCK</span>
+    </h1>
+    <div class="hero-bottom">
+<div class="hero-actions">
+        <a href="#products" class="btn-cta">Vásárolj Most</a>
+        <a href="#about" class="btn-outline">
+          Rólunk
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-ticker">
+    <div class="hero-ticker-inner">
+      <!-- Duplicated for seamless loop -->
+      <span class="ticker-item"><span class="dot"></span>Biztonságos átvevés</span>
+      <span class="ticker-item"><span class="dot"></span>Korlátozott készlet</span>
+      <span class="ticker-item"><span class="dot"></span>Havonta új termékek</span>
+      <span class="ticker-item"><span class="dot"></span>Biztonságos fizetés</span>
+      <span class="ticker-item"><span class="dot"></span>Egyből áshatod is</span>
+      <span class="ticker-item"><span class="dot"></span>Biztonságos átvevés</span>
+      <span class="ticker-item"><span class="dot"></span>Korlátozott készlet</span>
+      <span class="ticker-item"><span class="dot"></span>Havonta új termékek</span>
+      <span class="ticker-item"><span class="dot"></span>Biztonságos fizetés</span>
+      <span class="ticker-item"><span class="dot"></span>Egyből áshatod is</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRODUCTS ═══ -->
+<section class="products-section" id="products">
+  <div class="section-top">
+    <div>
+      <p class="section-label">// A Kollekció</p>
+      <h2 class="section-heading">Elérhető Most</h2>
+    </div>
+    <span class="section-meta" id="productMeta">— items</span>
+  </div>
+  <div class="products-grid" id="productsGrid"></div>
+</section>
+
+<!-- ═══ CTA BAND ═══ -->
+<div class="cta-band" id="about">
+  <div>
+    <p class="cta-band-text">Azoknak, akik<br><span>tudják, mit akarnak.</span></p>
+    <p class="cta-band-sub">Nem végtelen katalógus. Csak a megfelelő dolgok, a megfelelő időben.</p>
+  </div>
+  <a href="#products" class="btn-cta">Összes Termék</a>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer id="contact">
+  <div class="footer-logo">PBLOCK<span class="logo-dot" style="font-size:26px;">.</span></div>
+  <p class="footer-copy">© 2024 PBLOCK — MINDEN JOG FENNTARTVA.</p>
+</footer>
+
+<!-- ═══ CART ═══ -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <div class="cart-head-left">
+      <span class="cart-head-title">Kosár</span>
+      <span class="cart-head-count" id="cartHeadCount">0 termék</span>
+    </div>
+    <button class="cart-x" id="cartClose">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty-state">
+      <div class="empty-glyph">[ ]</div>
+      <p class="empty-msg">A kosár üres</p>
+    </div>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Összesen</span>
+      <span class="cart-total-val" id="cartTotal">0 Ft</span>
+    </div>
+    <p class="cart-note">// Szállítási díj a fizetésnél kerül kiszámításra</p>
+    <button class="checkout-btn" id="checkoutBtn" disabled>Tovább a fizetéshez →</button>
+  </div>
+</div>
+
+<script>
+  /* ─── DATA ─── */
+  const products = [
+    { id:1, name:"Purple Kush",      price:4500,  unit:"G", badge:"Új",       desc:"Limitált kiadás. Ha elfogy, elfogy.",                    img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=01" },
+    { id:2, name:"Columbian",        price:40000, unit:"G", badge:"Csomag",  desc:"Minden, amire szükséged van. Semmi felesleges.",          img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=02" },
+    { id:3, name:"Spe",               price:4000,  unit:"g", badge:null,      desc:"Az első egy sorozatból. Csak gyűjtőknek.",               img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=03" },
+    { id:4, name:"Purple Puni",      price:5000,  badge:"Prémium", desc:"Nyisd meg a következő szintet. Csak prémium tagoknak.",  img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=04" },
+    { id:5, name:"Golden Teacher",   price:4500, badge:null,      desc:"Az alapok, csak az, ami igazán számít.",                 img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=05" },
+    { id:6, name:"Stamp",            price:5000,  badge:"Limitált",desc:"Tűnj ki a sötétből. Határozottan, bocsánatkérés nélkül.",img:"https://placehold.co/480x480/0f0f0f/d4ff00?text=06" },
+  ];
+
+  let cart = [];
+
+  /* ─── RENDER PRODUCTS ─── */
+  function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = products.map((p, i) => `
+      <div class="product-card" style="animation-delay:${i*0.07+0.05}s">
+        <div class="product-thumb">
+          <img src="${p.img}" alt="${p.name}" loading="lazy">
+          <div class="product-thumb-overlay"></div>
+          ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
+          <span class="product-num">0${i+1}</span>
+        </div>
+        <div class="product-body">
+          <h3 class="product-name">${p.name}</h3>
+<div class="product-row">
+            <span class="product-price">${p.price.toLocaleString('hu-HU')} Ft</span>
+            <button class="add-btn" data-id="${p.id}">
+              <span class="plus">+</span> Kosárba
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('productMeta').textContent = `${products.length} termék`;
+  }
+
+  /* ─── RENDER CART ─── */
+  function renderCart() {
+    const body      = document.getElementById('cartBody');
+    const totalEl   = document.getElementById('cartTotal');
+    const badgeEl   = document.getElementById('cartBadge');
+    const countEl   = document.getElementById('cartHeadCount');
+    const checkBtn  = document.getElementById('checkoutBtn');
+
+    const totalQty   = cart.reduce((s, i) => s + i.qty, 0);
+    const totalPrice = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+    badgeEl.textContent  = totalQty;
+    totalEl.textContent  = `${totalPrice.toLocaleString('hu-HU')} Ft`;
+    countEl.textContent  = `${totalQty} termék`;
+    checkBtn.disabled    = cart.length === 0;
+
+    if (cart.length === 0) {
+      body.innerHTML = `
+        <div class="cart-empty-state">
+          <div class="empty-glyph">[ ]</div>
+          <p class="empty-msg">A kosár üres</p>
+        </div>`;
+      return;
+    }
+
+    body.innerHTML = cart.map(item => `
+      <div class="cart-line" data-id="${item.id}">
+        <img class="cart-line-img" src="${item.img}" alt="${item.name}">
+        <div class="cart-line-info">
+          <p class="cart-line-name">${item.name}</p>
+          <p class="cart-line-price">${item.price.toLocaleString('hu-HU')} Ft</p>
+          <div class="qty-row">
+            <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+          </div>
+        </div>
+        <button class="cart-line-del" data-action="remove" data-id="${item.id}">×</button>
+      </div>
+    `).join('');
+  }
+
+  /* ─── CART LOGIC ─── */
+  function addToCart(id) {
+    const p = products.find(x => x.id === id);
+    const existing = cart.find(x => x.id === id);
+    if (existing) existing.qty++;
+    else cart.push({ ...p, qty: 1 });
+    renderCart();
+
+    const badge = document.getElementById('cartBadge');
+    badge.classList.add('pop');
+    setTimeout(() => badge.classList.remove('pop'), 220);
+  }
+
+  function cartAction(action, id) {
+    const item = cart.find(x => x.id === id);
+    if (!item) return;
+    if (action === 'inc') item.qty++;
+    else if (action === 'dec') { item.qty--; if (item.qty <= 0) cart = cart.filter(x => x.id !== id); }
+    else if (action === 'remove') cart = cart.filter(x => x.id !== id);
+    renderCart();
+  }
+
+  /* ─── DRAWER ─── */
+  const overlay    = document.getElementById('cartOverlay');
+  const drawer     = document.getElementById('cartDrawer');
+
+  function openCart()  { drawer.classList.add('open');  overlay.classList.add('open');  document.body.style.overflow = 'hidden'; }
+  function closeCart() { drawer.classList.remove('open'); overlay.classList.remove('open'); document.body.style.overflow = ''; }
+
+  document.getElementById('cartOpen').addEventListener('click', openCart);
+  document.getElementById('cartClose').addEventListener('click', closeCart);
+  overlay.addEventListener('click', closeCart);
+
+  /* ─── DELEGATED EVENTS ─── */
+  document.addEventListener('click', e => {
+    const addBtn = e.target.closest('.add-btn');
+    if (addBtn) { addToCart(+addBtn.dataset.id); return; }
+
+    const qtyBtn = e.target.closest('.qty-btn');
+    if (qtyBtn) { cartAction(qtyBtn.dataset.action, +qtyBtn.dataset.id); return; }
+
+    const delBtn = e.target.closest('.cart-line-del');
+    if (delBtn) { cartAction('remove', +delBtn.dataset.id); return; }
+  });
+
+  /* ─── INIT ─── */
+  renderProducts();
+  renderCart();
+</script>
+</body>
+</html>
